@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS employees (
+  id BIGSERIAL PRIMARY KEY,
+  last_name VARCHAR(100) NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  middle_name VARCHAR(100),
+  birth_date DATE NOT NULL,
+  passport_series VARCHAR(20) NOT NULL,
+  passport_number VARCHAR(20) NOT NULL,
+  phone VARCHAR(30),
+  email VARCHAR(255),
+  address TEXT,
+  department VARCHAR(100),
+  position VARCHAR(100),
+  salary NUMERIC(12,2) CHECK (salary >= 0),
+  hire_date DATE NOT NULL,
+  is_fired BOOLEAN DEFAULT FALSE,
+  fired_date DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
