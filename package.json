@@ -1,0 +1,20 @@
+{
+  "name": "employee-registry",
+  "version": "1.0.0",
+  "description": "Назначение",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m218t/employee-registry.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/m218t/employee-registry/issues"
+  },
+  "homepage": "https://github.com/m218t/employee-registry#readme"
+}
