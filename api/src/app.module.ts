@@ -13,9 +13,8 @@ import { EmployeesModule } from './employees/employees.module';
       password: 'secret',
       database: 'employees',
       entities: [Employee],
-      synchronize: true,
+      synchronize: false,
     }),
-    TypeOrmModule.forFeature([Employee]),
     EmployeesModule,
   ],
 })
