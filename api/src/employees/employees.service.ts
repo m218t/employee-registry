@@ -1,32 +1,113 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Employee } from '../employee.entity';
+
+// Временный интерфейс
+type EmployeeWithFired = Employee & {
+  is_fired: boolean;
+  fired_date: Date;
+};
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
-    private readonly employeeRepo: Repository<Employee>,
+    private employeesRepository: Repository<Employee>,
   ) { }
 
-  findAll() {
-    return this.employeeRepo.find();
+  findAll(department?: string, position?: string) {
+    const where: any = {};
+
+    if (department) {
+      where.department = department;
+    }
+
+    if (position) {
+      where.position = position;
+    }
+
+    return this.employeesRepository.find({ where });
+  }
+
+  searchByName(name: string) {
+    if (!name || name.trim() === '') {
+      return this.employeesRepository.find();
+    }
+
+    return this.employeesRepository
+      .createQueryBuilder('employee')
+      .where(
+        'CONCAT(employee.last_name, \' \', employee.first_name, \' \', COALESCE(employee.middle_name, \'\')) ILIKE :name',
+        { name: `%${name}%` }
+      )
+      .getMany();
   }
 
   findOne(id: number) {
-    return this.employeeRepo.findOneBy({ id });
+    return this.employeesRepository.findOne({ where: { id } });
   }
 
-  create(employee: Partial<Employee>) {
-    return this.employeeRepo.save(employee);
+  create(employeeData: any) {
+    const employee = this.employeesRepository.create({
+      ...employeeData,
+      is_fired: false,
+    });
+    return this.employeesRepository.save(employee);
   }
 
-  update(id: number, data: Partial<Employee>) {
-    return this.employeeRepo.update(id, data);
+  async update(id: number, data: any) {
+    const employee = await this.findOne(id) as EmployeeWithFired;
+
+    if (!employee) {
+      throw new Error('Сотрудник не найден');
+    }
+
+    if (employee.is_fired) {
+      throw new Error('Нельзя редактировать уволенного сотрудника');
+    }
+
+    Object.assign(employee, data);
+    return this.employeesRepository.save(employee);
   }
 
-  fire(id: number) {
-    return this.employeeRepo.update(id, { is_fired: true });
+  async dismiss(id: number) {
+    const employee = await this.findOne(id) as EmployeeWithFired;
+
+    if (!employee) {
+      throw new Error('Сотрудник не найден');
+    }
+
+    if (employee.is_fired) {
+      throw new Error('Сотрудник уже уволен');
+    }
+
+    employee.is_fired = true;
+    employee.fired_date = new Date();
+    return this.employeesRepository.save(employee);
+  }
+
+  async getDepartments(): Promise<string[]> {
+    const result = await this.employeesRepository
+      .createQueryBuilder('employee')
+      .select('DISTINCT department', 'department')
+      .where('is_fired = false')
+      .andWhere('department IS NOT NULL')
+      .orderBy('department')
+      .getRawMany();
+
+    return result.map(row => row.department).filter(Boolean);
+  }
+
+  async getPositions(): Promise<string[]> {
+    const result = await this.employeesRepository
+      .createQueryBuilder('employee')
+      .select('DISTINCT position', 'position')
+      .where('is_fired = false')
+      .andWhere('position IS NOT NULL')
+      .orderBy('position')
+      .getRawMany();
+
+    return result.map(row => row.position).filter(Boolean);
   }
 }
