@@ -1,35 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity('employees')
 export class Employee {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  last_name: string;
+  @Column({ name: 'full_name' })
+  full_name: string;
 
-  @Column()
-  first_name: string;
-
-  @Column({ nullable: true })
-  middle_name: string;
-
-  @Column()
+  @Column({ name: 'birth_date', type: 'date' })
   birth_date: Date;
 
-  @Column()
-  passport_series: string;
-
-  @Column()
+  @Column({ name: 'passport_number' })
   passport_number: string;
 
-  @Column({ nullable: true })
-  phone: string;
+  @Column({ name: 'phone_number' })
+  phone_number: string;
 
-  @Column({ nullable: true })
+  @Column()
   email: string;
 
-  @Column({ nullable: true })
+  @Column()
   address: string;
 
   @Column()
@@ -38,15 +29,15 @@ export class Employee {
   @Column()
   position: string;
 
-  @Column('numeric')
+  @Column('decimal', { precision: 10, scale: 2 })
   salary: number;
 
-  @Column()
+  @Column({ name: 'hire_date', type: 'date' })
   hire_date: Date;
 
-  @Column({ default: false })
-  is_fired: boolean;
+  @Column({ name: 'is_active', default: true })
+  is_active: boolean;
 
-  @Column({ nullable: true })
-  fired_date: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 }
