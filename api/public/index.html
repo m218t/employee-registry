@@ -1,188 +1,306 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Учет сотрудников - HR система</title>
+    <meta charset="UTF-8">
+    <title>Учет сотрудников</title>
     <style>
-        body { font-family: Arial; padding: 20px; max-width: 1200px; margin: 0 auto; }
-        .controls { background: #f5f5f5; padding: 20px; margin-bottom: 20px; border-radius: 10px; }
-        input, button { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background: #45a049; }
-        .employee-card { 
-            border: 1px solid #ddd; 
-            padding: 15px; 
-            margin: 10px 0; 
-            border-radius: 8px;
-            background: #f9f9f9;
+        body {
+            font-family: Arial;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        .status-active { color: green; font-weight: bold; }
-        .status-fired { color: red; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #4CAF50; color: white; }
+
+        .controls {
+            background: #f5f5f5;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        input,
+        select,
+        button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: #ccc;
+        }
+
+        button:hover:not(:disabled) {
+            background: #45a049;
+        }
+
+        .employee-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        .active {
+            background: #e8f5e8;
+        }
+
+        .fired {
+            background: #f8d7da;
+            opacity: 0.7;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
     </style>
 </head>
+
 <body>
     <h1>👥 Учет сотрудников - HR система</h1>
-    
+
     <div class="controls">
-        <h3>Управление сотрудниками:</h3>
-        <button onclick="loadEmployees()">Обновить список</button>
-        <button onclick="showAddForm()">+ Добавить сотрудника</button>
-        <input type="text" id="searchInput" placeholder="Поиск по ФИО">
+        <h3>Поиск:</h3>
+        <input type="text" id="searchInput" placeholder="Введите ФИО">
         <button onclick="searchEmployee()">Найти</button>
+        <button onclick="loadEmployees()">Показать всех</button>
+        <button onclick="showAddForm()" style="background: #2196F3;">+ Добавить сотрудника</button>
     </div>
 
     <!-- Форма добавления -->
     <div id="addForm" style="display:none; background:#e8f5e8; padding:20px; margin:20px 0; border-radius:10px;">
         <h3>Добавить нового сотрудника:</h3>
-        <input type="text" id="newName" placeholder="ФИО" required><br>
-        <input type="text" id="newDepartment" placeholder="Отдел"><br>
-        <input type="text" id="newPosition" placeholder="Должность"><br>
-        <input type="number" id="newSalary" placeholder="Зарплата"><br>
-        <button onclick="addEmployee()">Сохранить</button>
-        <button onclick="hideAddForm()">Отмена</button>
+        <div>
+            <input type="text" id="lastName" placeholder="Фамилия*" required>
+            <input type="text" id="firstName" placeholder="Имя*" required>
+            <input type="text" id="middleName" placeholder="Отчество">
+        </div>
+        <div>
+            <input type="date" id="birthDate" required>
+            <label>Дата рождения*</label>
+        </div>
+        <div>
+            <input type="text" id="passportSeries" placeholder="Серия паспорта*" required style="width: 100px;">
+            <input type="text" id="passportNumber" placeholder="Номер паспорта*" required style="width: 150px;">
+        </div>
+        <div>
+            <input type="tel" id="phone" placeholder="Телефон">
+            <input type="email" id="email" placeholder="Email">
+        </div>
+        <div>
+            <input type="text" id="address" placeholder="Адрес" style="width: 300px;">
+        </div>
+        <div>
+            <input type="text" id="department" placeholder="Отдел">
+            <input type="text" id="position" placeholder="Должность">
+            <input type="number" id="salary" placeholder="Зарплата">
+        </div>
+        <div>
+            <input type="date" id="hireDate" required>
+            <label>Дата приема*</label>
+        </div>
+        <div>
+            <button onclick="addEmployee()">Сохранить</button>
+            <button onclick="hideAddForm()" style="background: #f44336;">Отмена</button>
+        </div>
     </div>
 
     <!-- Список сотрудников -->
-    <div id="employeesList">
-        <h3>Список сотрудников:</h3>
-        <table id="employeesTable">
-            <thead>
-                <tr>
-                    <th>ФИО</th>
-                    <th>Отдел</th>
-                    <th>Должность</th>
-                    <th>Зарплата</th>
-                    <th>Статус</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody id="employeesBody">
-                <!-- Здесь появятся сотрудники -->
-            </tbody>
-        </table>
-    </div>
+    <h3>Список сотрудников:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Паспорт</th>
+                <th>Телефон</th>
+                <th>Отдел</th>
+                <th>Должность</th>
+                <th>Зарплата</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="employeesTable">
+            <!-- Данные загружаются через JS -->
+        </tbody>
+    </table>
 
     <script>
-        // Загрузить всех сотрудников
+
+        window.onload = function () {
+            loadEmployees();
+        };
+
+
         async function loadEmployees() {
             try {
+                console.log('Загружаю сотрудников...');
                 const response = await fetch('/api/employees');
+                console.log('Ответ:', response.status);
+
+                if (!response.ok) {
+                    throw new Error('HTTP ошибка: ' + response.status);
+                }
+
                 const employees = await response.json();
+                console.log('Получено сотрудников:', employees.length);
+                console.log('Первый сотрудник:', employees[0]);
+
                 displayEmployees(employees);
             } catch (error) {
-                console.error('Ошибка:', error);
-                document.getElementById('employeesBody').innerHTML = 
-                    '<tr><td colspan="6">❌ Ошибка загрузки данных</td></tr>';
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('employeesTable').innerHTML =
+                    '<tr><td colspan="8">❌ Ошибка загрузки: ' + error.message + '</td></tr>';
             }
         }
 
-        // Поиск сотрудника
+
         async function searchEmployee() {
             const name = document.getElementById('searchInput').value;
             if (!name) {
                 loadEmployees();
                 return;
             }
-            
+
             try {
                 const response = await fetch(`/api/employees/search?name=${encodeURIComponent(name)}`);
                 const employees = await response.json();
                 displayEmployees(employees);
             } catch (error) {
-                console.error('Ошибка поиска:', error);
+                alert('Ошибка поиска: ' + error.message);
             }
         }
 
-        // Добавить сотрудника
+
         async function addEmployee() {
-            const newEmployee = {
-                full_name: document.getElementById('newName').value,
-                department: document.getElementById('newDepartment').value,
-                position: document.getElementById('newPosition').value,
-                salary: document.getElementById('newSalary').value,
-                birth_date: '1990-01-01',
-                passport_number: '4510-123456',
-                phone_number: '+7 (999) 123-45-67',
-                email: 'employee@company.ru',
-                address: 'г. Москва',
-                hire_date: new Date().toISOString().split('T')[0],
-                is_active: true
+            const employee = {
+                last_name: document.getElementById('lastName').value || 'Иванов',
+                first_name: document.getElementById('firstName').value || 'Иван',
+                middle_name: document.getElementById('middleName').value || 'Иванович',
+                birth_date: document.getElementById('birthDate').value || '1990-01-01',
+                passport_series: document.getElementById('passportSeries').value || '4510',
+                passport_number: document.getElementById('passportNumber').value || '123456',
+                phone: document.getElementById('phone').value || '+7 (999) 123-45-67',
+                email: document.getElementById('email').value || 'ivanov@mail.ru',
+                address: document.getElementById('address').value || 'Москва',
+                department: document.getElementById('department').value || 'IT',
+                position: document.getElementById('position').value || 'Разработчик',
+                salary: parseFloat(document.getElementById('salary').value) || 100000,
+                hire_date: document.getElementById('hireDate').value || new Date().toISOString().split('T')[0]
             };
 
             try {
-                await fetch('/api/employees', {
+                const response = await fetch('/api/employees', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(newEmployee)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(employee)
                 });
-                
+
+                if (!response.ok) {
+                    throw new Error('Ошибка сервера: ' + response.status);
+                }
+
                 alert('✅ Сотрудник добавлен!');
                 hideAddForm();
                 loadEmployees();
             } catch (error) {
-                alert('❌ Ошибка при добавлении');
+                alert('❌ Ошибка: ' + error.message);
             }
         }
 
-        // Уволить сотрудника
+
         async function dismissEmployee(id) {
             if (!confirm('Уволить сотрудника?')) return;
-            
+
             try {
-                await fetch(`/api/employees/${id}/dismiss`, {
+                const response = await fetch(`/api/employees/${id}/dismiss`, {
                     method: 'PATCH'
                 });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка сервера: ' + response.status);
+                }
+
                 alert('✅ Сотрудник уволен');
                 loadEmployees();
             } catch (error) {
-                alert('❌ Ошибка при увольнении');
+                alert('❌ Ошибка: ' + error.message);
             }
         }
 
-        // Показать форму добавления
+
         function showAddForm() {
             document.getElementById('addForm').style.display = 'block';
         }
 
-        // Скрыть форму добавления
         function hideAddForm() {
             document.getElementById('addForm').style.display = 'none';
         }
 
-        // Отобразить сотрудников в таблице
+
         function displayEmployees(employees) {
-            const tbody = document.getElementById('employeesBody');
-            
+            const tbody = document.getElementById('employeesTable');
+
             if (!employees || employees.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">📭 Нет данных о сотрудниках</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8">📭 Нет сотрудников</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = employees.map(emp => `
-                <tr>
-                    <td><strong>${emp.full_name || 'Не указано'}</strong></td>
+            tbody.innerHTML = employees.map(emp => {
+                // Собираем полное имя из отдельных полей
+                const fullName = `${emp.last_name || ''} ${emp.first_name || ''} ${emp.middle_name || ''}`.trim();
+                // Собираем паспорт
+                const passport = `${emp.passport_series || ''} ${emp.passport_number || ''}`.trim() || '-';
+
+                return `
+                <tr class="${emp.is_fired ? 'fired' : 'active'}">
+                    <td><strong>${fullName || 'Не указано'}</strong></td>
+                    <td>${passport}</td>
+                    <td>${emp.phone || '-'}</td>
                     <td>${emp.department || '-'}</td>
                     <td>${emp.position || '-'}</td>
                     <td>${emp.salary ? emp.salary + ' руб.' : '-'}</td>
+                    <td>${emp.is_fired ? '❌ Уволен' : '✅ Работает'}</td>
                     <td>
-                        <span class="${emp.is_active ? 'status-active' : 'status-fired'}">
-                            ${emp.is_active ? '✅ Работает' : '❌ Уволен'}
-                        </span>
-                    </td>
-                    <td>
-                        ${emp.is_active ? 
-                            `<button onclick="dismissEmployee(${emp.id})">Уволить</button>` : 
-                            '(редактирование заблокировано)'
-                        }
+                        ${!emp.is_fired ?
+                        `<button onclick="dismissEmployee(${emp.id})">Уволить</button>` :
+                        '<button disabled>Уволен</button>'
+                    }
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
-
-        // При загрузке страницы сразу показываем сотрудников
-        loadEmployees();
     </script>
 </body>
+
 </html>
