@@ -96,7 +96,6 @@
         <button onclick="showAddForm()" style="background: #2196F3;">+ Добавить сотрудника</button>
     </div>
 
-    <!-- Форма добавления -->
     <div id="addForm" style="display:none; background:#e8f5e8; padding:20px; margin:20px 0; border-radius:10px;">
         <h3>Добавить нового сотрудника:</h3>
         <div>
@@ -134,7 +133,6 @@
         </div>
     </div>
 
-    <!-- Список сотрудников -->
     <h3>Список сотрудников:</h3>
     <table>
         <thead>
@@ -149,40 +147,25 @@
                 <th>Действия</th>
             </tr>
         </thead>
-        <tbody id="employeesTable">
-            <!-- Данные загружаются через JS -->
-        </tbody>
+        <tbody id="employeesTable"></tbody>
     </table>
 
     <script>
-
         window.onload = function () {
             loadEmployees();
         };
 
-
         async function loadEmployees() {
             try {
-                console.log('Загружаю сотрудников...');
                 const response = await fetch('/api/employees');
-                console.log('Ответ:', response.status);
-
-                if (!response.ok) {
-                    throw new Error('HTTP ошибка: ' + response.status);
-                }
-
+                if (!response.ok) throw new Error('HTTP ошибка: ' + response.status);
                 const employees = await response.json();
-                console.log('Получено сотрудников:', employees.length);
-                console.log('Первый сотрудник:', employees[0]);
-
                 displayEmployees(employees);
             } catch (error) {
-                console.error('Ошибка загрузки:', error);
                 document.getElementById('employeesTable').innerHTML =
                     '<tr><td colspan="8">❌ Ошибка загрузки: ' + error.message + '</td></tr>';
             }
         }
-
 
         async function searchEmployee() {
             const name = document.getElementById('searchInput').value;
@@ -190,7 +173,6 @@
                 loadEmployees();
                 return;
             }
-
             try {
                 const response = await fetch(`/api/employees/search?name=${encodeURIComponent(name)}`);
                 const employees = await response.json();
@@ -200,23 +182,27 @@
             }
         }
 
-
         async function addEmployee() {
             const employee = {
-                last_name: document.getElementById('lastName').value || 'Иванов',
-                first_name: document.getElementById('firstName').value || 'Иван',
-                middle_name: document.getElementById('middleName').value || 'Иванович',
-                birth_date: document.getElementById('birthDate').value || '1990-01-01',
-                passport_series: document.getElementById('passportSeries').value || '4510',
-                passport_number: document.getElementById('passportNumber').value || '123456',
-                phone: document.getElementById('phone').value || '+7 (999) 123-45-67',
-                email: document.getElementById('email').value || 'ivanov@mail.ru',
-                address: document.getElementById('address').value || 'Москва',
-                department: document.getElementById('department').value || 'IT',
-                position: document.getElementById('position').value || 'Разработчик',
-                salary: parseFloat(document.getElementById('salary').value) || 100000,
-                hire_date: document.getElementById('hireDate').value || new Date().toISOString().split('T')[0]
+                lastName: document.getElementById('lastName').value,
+                firstName: document.getElementById('firstName').value,
+                middleName: document.getElementById('middleName').value || undefined,
+                birthDate: document.getElementById('birthDate').value || undefined,
+                passportSeries: document.getElementById('passportSeries').value,
+                passportNumber: document.getElementById('passportNumber').value,
+                phone: document.getElementById('phone').value || undefined,
+                email: document.getElementById('email').value || undefined,
+                address: document.getElementById('address').value || undefined,
+                department: document.getElementById('department').value || undefined,
+                position: document.getElementById('position').value || undefined,
+                salary: document.getElementById('salary').value ? parseFloat(document.getElementById('salary').value) : undefined,
+                hireDate: document.getElementById('hireDate').value
             };
+
+            if (!employee.lastName || !employee.firstName || !employee.passportSeries || !employee.passportNumber || !employee.hireDate) {
+                alert('Заполните обязательные поля: Фамилия, Имя, Паспорт, Дата приёма');
+                return;
+            }
 
             try {
                 const response = await fetch('/api/employees', {
@@ -226,7 +212,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Ошибка сервера: ' + response.status);
+                    const error = await response.json();
+                    throw new Error(JSON.stringify(error));
                 }
 
                 alert('✅ Сотрудник добавлен!');
@@ -237,26 +224,19 @@
             }
         }
 
-
         async function dismissEmployee(id) {
             if (!confirm('Уволить сотрудника?')) return;
-
             try {
                 const response = await fetch(`/api/employees/${id}/dismiss`, {
                     method: 'PATCH'
                 });
-
-                if (!response.ok) {
-                    throw new Error('Ошибка сервера: ' + response.status);
-                }
-
+                if (!response.ok) throw new Error('Ошибка сервера: ' + response.status);
                 alert('✅ Сотрудник уволен');
                 loadEmployees();
             } catch (error) {
                 alert('❌ Ошибка: ' + error.message);
             }
         }
-
 
         function showAddForm() {
             document.getElementById('addForm').style.display = 'block';
@@ -265,7 +245,6 @@
         function hideAddForm() {
             document.getElementById('addForm').style.display = 'none';
         }
-
 
         function displayEmployees(employees) {
             const tbody = document.getElementById('employeesTable');
@@ -276,28 +255,25 @@
             }
 
             tbody.innerHTML = employees.map(emp => {
-                // Собираем полное имя из отдельных полей
-                const fullName = `${emp.last_name || ''} ${emp.first_name || ''} ${emp.middle_name || ''}`.trim();
-                // Собираем паспорт
-                const passport = `${emp.passport_series || ''} ${emp.passport_number || ''}`.trim() || '-';
+                const fullName = `${emp.lastName || ''} ${emp.firstName || ''} ${emp.middleName || ''}`.trim();
+                const passport = `${emp.passportSeries || ''} ${emp.passportNumber || ''}`.trim() || '-';
 
                 return `
-                <tr class="${emp.is_fired ? 'fired' : 'active'}">
-                    <td><strong>${fullName || 'Не указано'}</strong></td>
-                    <td>${passport}</td>
-                    <td>${emp.phone || '-'}</td>
-                    <td>${emp.department || '-'}</td>
-                    <td>${emp.position || '-'}</td>
-                    <td>${emp.salary ? emp.salary + ' руб.' : '-'}</td>
-                    <td>${emp.is_fired ? '❌ Уволен' : '✅ Работает'}</td>
-                    <td>
-                        ${!emp.is_fired ?
+        <tr class="${emp.isFired ? 'fired' : 'active'}">
+            <td><strong>${fullName || 'Не указано'}</strong></td>
+            <td>${passport}</td>
+            <td>${emp.phone || '-'}</td>
+            <td>${emp.department || '-'}</td>
+            <td>${emp.position || '-'}</td>
+            <td>${emp.salary ? emp.salary + ' руб.' : '-'}</td>
+            <td>${emp.isFired ? '❌ Уволен' : '✅ Работает'}</td>
+            <td>
+                ${!emp.isFired ?
                         `<button onclick="dismissEmployee(${emp.id})">Уволить</button>` :
-                        '<button disabled>Уволен</button>'
-                    }
-                    </td>
-                </tr>
-                `;
+                        '<button disabled>Уволен</button>'}
+            </td>
+        </tr>
+        `;
             }).join('');
         }
     </script>

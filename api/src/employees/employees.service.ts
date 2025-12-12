@@ -1,13 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Employee } from '../employee.entity';
-
-// Временный интерфейс
-type EmployeeWithFired = Employee & {
-  is_fired: boolean;
-  fired_date: Date;
-};
 
 @Injectable()
 export class EmployeesService {
@@ -51,20 +45,21 @@ export class EmployeesService {
   create(employeeData: any) {
     const employee = this.employeesRepository.create({
       ...employeeData,
-      is_fired: false,
+      isFired: false, // camelCase!
     });
     return this.employeesRepository.save(employee);
   }
 
   async update(id: number, data: any) {
-    const employee = await this.findOne(id) as EmployeeWithFired;
+    const employee = await this.findOne(id);
 
     if (!employee) {
-      throw new Error('Сотрудник не найден');
+      throw new NotFoundException('Сотрудник не найден');
     }
 
-    if (employee.is_fired) {
-      throw new Error('Нельзя редактировать уволенного сотрудника');
+    // Используем isFired (camelCase)
+    if (employee.isFired) {
+      throw new BadRequestException('Нельзя редактировать уволенного сотрудника');
     }
 
     Object.assign(employee, data);
@@ -72,18 +67,18 @@ export class EmployeesService {
   }
 
   async dismiss(id: number) {
-    const employee = await this.findOne(id) as EmployeeWithFired;
+    const employee = await this.employeesRepository.findOne({ where: { id } });
 
     if (!employee) {
-      throw new Error('Сотрудник не найден');
+      throw new NotFoundException('Сотрудник не найден');
     }
 
-    if (employee.is_fired) {
-      throw new Error('Сотрудник уже уволен');
+    if (employee.isFired) {
+      throw new BadRequestException('Сотрудник уже уволен');
     }
 
-    employee.is_fired = true;
-    employee.fired_date = new Date();
+    employee.isFired = true;
+    employee.firedDate = new Date();
     return this.employeesRepository.save(employee);
   }
 

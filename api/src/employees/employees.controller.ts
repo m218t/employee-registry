@@ -38,8 +38,8 @@ export class EmployeesController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateEmployeeDto: UpdateEmployeeDto) {
-    return this.employeesService.update(id, updateEmployeeDto);
+  update(@Param('id') id: string, @Body() updateEmployeeDto: UpdateEmployeeDto) {
+    return this.employeesService.update(+id, updateEmployeeDto);
   }
 
   @Patch(':id/dismiss')
