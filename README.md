@@ -45,6 +45,21 @@ docker/                 # Docker-окружение
 | PUT | `/api/employees/:id` | Обновить данные |
 | PATCH | `/api/employees/:id/dismiss` | Уволить |
 
+## Запуск с Docker
+
+Клонируйте репозиторий
+
+git clone https://github.com/m218t/employee-registry.git
+cd employee-registry/docker
+
+Запустите приложение
+
+docker-compose up --build
+
+Откройте в браузере
+
+http://localhost:3000
+
 ## 🐳 Запуск без Docker
 ```bash
 # 1. Запустить PostgreSQL
