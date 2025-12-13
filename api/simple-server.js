@@ -47,6 +47,6 @@ app.get('*', (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('✅ Сервер запущен: http://localhost:3000');
-    console.log('📊 API доступен по /api/employees');
+    console.log('Сервер запущен: http://localhost:3000');
+    console.log('API доступен по /api/employees');
 });

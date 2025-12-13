@@ -186,7 +186,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(3000, () => {
-    console.log('✅ Сервер запущен: http://localhost:3000');
-    console.log('📊 API: http://localhost:3000/api/employees');
-    console.log('👥 Сотрудников в базе:', employees.length);
+    console.log('Сервер запущен: http://localhost:3000');
+    console.log('API: http://localhost:3000/api/employees');
+    console.log('Сотрудников в базе:', employees.length);
 });
