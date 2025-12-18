@@ -86,7 +86,7 @@
 </head>
 
 <body>
-    <h1>👥 Учет сотрудников - HR система</h1>
+    <h1> Учет сотрудников - HR система</h1>
 
     <div class="controls">
         <h3>Поиск:</h3>
@@ -94,6 +94,26 @@
         <button onclick="searchEmployee()">Найти</button>
         <button onclick="loadEmployees()">Показать всех</button>
         <button onclick="showAddForm()" style="background: #2196F3;">+ Добавить сотрудника</button>
+    </div>
+
+    <div style="margin-top: 10px;">
+        <label>Фильтр по отделу:</label>
+        <select id="filterDepartment" onchange="applyFilters()">
+            <option value="">Все отделы</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Бухгалтерия">Бухгалтерия</option>
+        </select>
+
+        <label style="margin-left: 20px;">Фильтр по должности:</label>
+        <select id="filterPosition" onchange="applyFilters()">
+            <option value="">Все должности</option>
+            <option value="Разработчик">Разработчик</option>
+            <option value="Менеджер">Менеджер</option>
+            <option value="Бухгалтер">Бухгалтер</option>
+        </select>
+
+        <button onclick="clearFilters()">Сбросить фильтры</button>
     </div>
 
     <div id="addForm" style="display:none; background:#e8f5e8; padding:20px; margin:20px 0; border-radius:10px;">
@@ -130,6 +150,44 @@
         <div>
             <button onclick="addEmployee()">Сохранить</button>
             <button onclick="hideAddForm()" style="background: #f44336;">Отмена</button>
+        </div>
+    </div>
+
+    <div id="editForm" style="display:none; background:#fff3cd; padding:20px; margin:20px 0; border-radius:10px;">
+        <h3>Редактировать сотрудника:</h3>
+        <div>
+            <input type="hidden" id="editId">
+            <input type="text" id="editLastName" placeholder="Фамилия*" required>
+            <input type="text" id="editFirstName" placeholder="Имя*" required>
+            <input type="text" id="editMiddleName" placeholder="Отчество">
+        </div>
+        <div>
+            <input type="date" id="editBirthDate">
+            <label>Дата рождения</label>
+        </div>
+        <div>
+            <input type="text" id="editPassportSeries" placeholder="Серия паспорта*" required style="width: 100px;">
+            <input type="text" id="editPassportNumber" placeholder="Номер паспорта*" required style="width: 150px;">
+        </div>
+        <div>
+            <input type="tel" id="editPhone" placeholder="Телефон">
+            <input type="email" id="editEmail" placeholder="Email">
+        </div>
+        <div>
+            <input type="text" id="editAddress" placeholder="Адрес" style="width: 300px;">
+        </div>
+        <div>
+            <input type="text" id="editDepartment" placeholder="Отдел">
+            <input type="text" id="editPosition" placeholder="Должность">
+            <input type="number" id="editSalary" placeholder="Зарплата">
+        </div>
+        <div>
+            <input type="date" id="editHireDate" required>
+            <label>Дата приема*</label>
+        </div>
+        <div>
+            <button onclick="updateEmployee()">Сохранить изменения</button>
+            <button onclick="hideEditForm()" style="background: #f44336;">Отмена</button>
         </div>
     </div>
 
@@ -238,6 +296,101 @@
             }
         }
 
+        async function editEmployee(id) {
+            try {
+                const response = await fetch(`/api/employees/${id}`);
+                const employee = await response.json();
+
+                document.getElementById('editId').value = employee.id;
+                document.getElementById('editLastName').value = employee.lastName || '';
+                document.getElementById('editFirstName').value = employee.firstName || '';
+                document.getElementById('editMiddleName').value = employee.middleName || '';
+                document.getElementById('editBirthDate').value = employee.birthDate ? employee.birthDate.split('T')[0] : '';
+                document.getElementById('editPassportSeries').value = employee.passportSeries || '';
+                document.getElementById('editPassportNumber').value = employee.passportNumber || '';
+                document.getElementById('editPhone').value = employee.phone || '';
+                document.getElementById('editEmail').value = employee.email || '';
+                document.getElementById('editAddress').value = employee.address || '';
+                document.getElementById('editDepartment').value = employee.department || '';
+                document.getElementById('editPosition').value = employee.position || '';
+                document.getElementById('editSalary').value = employee.salary || '';
+                document.getElementById('editHireDate').value = employee.hireDate ? employee.hireDate.split('T')[0] : '';
+
+                document.getElementById('editForm').style.display = 'block';
+                document.getElementById('addForm').style.display = 'none';
+            } catch (error) {
+                alert('Ошибка загрузки: ' + error.message);
+            }
+        }
+
+        async function updateEmployee() {
+            const id = document.getElementById('editId').value;
+
+            const employee = {
+                lastName: document.getElementById('editLastName').value,
+                firstName: document.getElementById('editFirstName').value,
+                middleName: document.getElementById('editMiddleName').value || undefined,
+                birthDate: document.getElementById('editBirthDate').value || undefined,
+                passportSeries: document.getElementById('editPassportSeries').value,
+                passportNumber: document.getElementById('editPassportNumber').value,
+                phone: document.getElementById('editPhone').value || undefined,
+                email: document.getElementById('editEmail').value || undefined,
+                address: document.getElementById('editAddress').value || undefined,
+                department: document.getElementById('editDepartment').value || undefined,
+                position: document.getElementById('editPosition').value || undefined,
+                salary: document.getElementById('editSalary').value ? parseFloat(document.getElementById('editSalary').value) : undefined,
+                hireDate: document.getElementById('editHireDate').value
+            };
+
+            try {
+                const response = await fetch(`/api/employees/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(employee)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(JSON.stringify(error));
+                }
+
+                alert('Данные обновлены!');
+                hideEditForm();
+                loadEmployees();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
+        function hideEditForm() {
+            document.getElementById('editForm').style.display = 'none';
+        }
+
+        function applyFilters() {
+            const deptFilter = document.getElementById('filterDepartment').value;
+            const posFilter = document.getElementById('filterPosition').value;
+            const rows = document.querySelectorAll('#employeesTable tr');
+
+            rows.forEach(row => {
+                if (row.cells.length < 8) return;
+
+                const dept = row.cells[3]?.textContent || '';
+                const pos = row.cells[4]?.textContent || '';
+
+                const showDept = !deptFilter || dept === deptFilter;
+                const showPos = !posFilter || pos === posFilter;
+
+                row.style.display = (showDept && showPos) ? '' : 'none';
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('filterDepartment').value = '';
+            document.getElementById('filterPosition').value = '';
+            applyFilters();
+        }
+
+
         function showAddForm() {
             document.getElementById('addForm').style.display = 'block';
         }
@@ -268,9 +421,11 @@
             <td>${emp.salary ? emp.salary + ' руб.' : '-'}</td>
             <td>${emp.isFired ? '❌ Уволен' : '✅ Работает'}</td>
             <td>
-                ${!emp.isFired ?
-                        `<button onclick="dismissEmployee(${emp.id})">Уволить</button>` :
-                        '<button disabled>Уволен</button>'}
+                 ${!emp.isFired ?
+                        `<button onclick="dismissEmployee(${emp.id})">Уволить</button>
+                        <button onclick="editEmployee(${emp.id})" style="background: #ff9800;">Редактировать</button>` :
+                        '<button disabled>Уволен</button>'
+                    }
             </td>
         </tr>
         `;
